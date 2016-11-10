@@ -42,9 +42,9 @@ for p in problems
   fval = [0.0]
   if ncon > 0
     cx = zeros(ncon)
-    cfn(io_err, Cint[nvar], Cint[ncon], x0, fval, cx)
+    cfn(nlp.lib, io_err, Cint[nvar], Cint[ncon], x0, fval, cx)
   else
-    ufn(io_err, Cint[nvar], x0, fval)
+    ufn(nlp.lib, io_err, Cint[nvar], x0, fval)
   end
   println("$p: core interface: f(x₀) = $(fval[1])")
 

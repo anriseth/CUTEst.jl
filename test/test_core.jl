@@ -46,22 +46,22 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
 
   @testset "Core interface" begin
     if (ncon[1] > 0)
-      cfn(st, nvar, ncon, x0, fx, cx)
+      cfn(nlp.lib, st, nvar, ncon, x0, fx, cx)
       @test isapprox(fx[1], f(x0), rtol=rtol)
       @test isapprox(cx, c(x0), rtol=rtol)
 
-      cifn(st, nvar, Cint[0], x0, fx)
+      cifn(nlp.lib, st, nvar, Cint[0], x0, fx)
       @test isapprox(fx[1], f(x0), rtol=rtol)
       for i = 1:ncon[1]
-        cifn(st, nvar, Cint[i], x0, cx)
+        cifn(nlp.lib, st, nvar, Cint[i], x0, cx)
         @test isapprox(cx[1], c(x0)[i], rtol=rtol)
       end
 
-      cofg(st, nvar, x0, fx, gx, True)
+      cofg(nlp.lib, st, nvar, x0, fx, gx, True)
       @test isapprox(fx[1], f(x0), rtol=rtol)
       @test isapprox(gx, g(x0), rtol=rtol)
 
-      cofsg(st, nvar, x0, fx, nnzg, nvar, gval, gvar, True)
+      cofsg(nlp.lib, st, nvar, x0, fx, nnzg, nvar, gval, gvar, True)
       @test isapprox(fx[1], f(x0), rtol=rtol)
       gx = zeros(nvar[1])
       for i = 1:nnzg[1]
@@ -69,44 +69,44 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       end
       @test isapprox(gx, g(x0), rtol=rtol)
 
-      ccfg(st, nvar, ncon, x0, cx, True, nvar, ncon, Jtx, True)
+      ccfg(nlp.lib, st, nvar, ncon, x0, cx, True, nvar, ncon, Jtx, True)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
-      ccfg(st, nvar, ncon, x0, cx, False, ncon, nvar, Jx, True)
+      ccfg(nlp.lib, st, nvar, ncon, x0, cx, False, ncon, nvar, Jx, True)
       @test isapprox(Jx, J(x0), rtol=rtol)
 
-      clfg(st, nvar, ncon, x0, y0, lx, glx, True)
+      clfg(nlp.lib, st, nvar, ncon, x0, y0, lx, glx, True)
       @test isapprox(lx[1], f(x0)+dot(y0,cx), rtol=rtol)
       @test isapprox(glx, g(x0)+J(x0)'*y0, rtol=rtol)
 
-      cgr(st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx)
+      cgr(nlp.lib, st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
-      cgr(st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx)
+      cgr(nlp.lib, st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
-      cgr(st, nvar, ncon, x0, y0, True, glx, True, nvar, ncon, Jtx)
+      cgr(nlp.lib, st, nvar, ncon, x0, y0, True, glx, True, nvar, ncon, Jtx)
       @test isapprox(glx, g(x0)+J(x0)'*y0, rtol=rtol)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
-      cgr(st, nvar, ncon, x0, y0, True, glx, False, ncon, nvar, Jx)
+      cgr(nlp.lib, st, nvar, ncon, x0, y0, True, glx, False, ncon, nvar, Jx)
       @test isapprox(glx, g(x0)+J(x0)'*y0, rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
 
-      cigr(st, nvar, Cint[0], x0, gval)
+      cigr(nlp.lib, st, nvar, Cint[0], x0, gval)
       @test isapprox(gval, g(x0), rtol=rtol)
       for i = 1:ncon[1]
-        cigr(st, nvar, Cint[i], x0, gval)
+        cigr(nlp.lib, st, nvar, Cint[i], x0, gval)
         @test isapprox(gval, J(x0)[i,:], rtol=rtol)
       end
 
-      cisgr(st, nvar, Cint[0], x0, nnzg, nvar, gval, gvar)
+      cisgr(nlp.lib, st, nvar, Cint[0], x0, nnzg, nvar, gval, gvar)
       I = 1:nnzg[1]
       @test isapprox(gval[I], g(x0)[gvar[I]], rtol=rtol)
       for i = 1:ncon[1]
-        cisgr(st, nvar, Cint[i], x0, nnzg, nvar, gval, gvar)
+        cisgr(nlp.lib, st, nvar, Cint[i], x0, nnzg, nvar, gval, gvar)
         @test isapprox(gval, J(x0)[i,gvar[1:nnzg[1]]], rtol=rtol)
       end
 
-      csgr(st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun)
+      csgr(nlp.lib, st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun)
       glx = zeros(nvar[1])
       Jx = zeros(nvar[1], ncon[1])
       for k = 1:nnzj[1]
@@ -118,7 +118,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       end
       @test isapprox(glx, g(x0)+J(x0)'*y0, rtol=rtol)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
-      csgr(st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun)
+      csgr(nlp.lib, st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun)
       gx = zeros(nvar[1])
       Jx = zeros(ncon[1], nvar[1])
       for k = 1:nnzj[1]
@@ -131,7 +131,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
 
-      ccfsg(st, nvar, ncon, x0, cx, nnzj, lj, Jval, Jvar, Jfun, True)
+      ccfsg(nlp.lib, st, nvar, ncon, x0, cx, nnzj, lj, Jval, Jvar, Jfun, True)
       Jx = zeros(ncon[1], nvar[1])
       for k = 1:nnzj[1]
         Jx[Jfun[k],Jvar[k]] = Jval[k]
@@ -140,7 +140,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       @test isapprox(Jx, J(x0), rtol=rtol)
 
       for j = 1:ncon[1]
-        ccifg(st, nvar, Cint[j], x0, ci, gci, True)
+        ccifg(nlp.lib, st, nvar, Cint[j], x0, ci, gci, True)
         cx[j] = ci[1]
         Jx[j,:] = gci'
       end
@@ -149,7 +149,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
 
       Jx = zeros(ncon[1], nvar[1])
       for j = 1:ncon[1]
-        ccifsg(st, nvar, Cint[j], x0, ci, nnzj, lj, Jval, Jvar, True)
+        ccifsg(nlp.lib, st, nvar, Cint[j], x0, ci, nnzj, lj, Jval, Jvar, True)
         cx[j] = ci[1]
         for k = 1:nnzj[1]
           Jx[j,Jvar[k]] = Jval[k]
@@ -158,31 +158,31 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       @test isapprox(cx, c(x0), rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
 
-      cgrdh(st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx, nvar,
+      cgrdh(nlp.lib, st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx, nvar,
             Wx)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
-      cgrdh(st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx, nvar,
+      cgrdh(nlp.lib, st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx, nvar,
             Wx)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
-      cgrdh(st, nvar, ncon, x0, y0, True, gx, False, ncon, nvar, Jx, nvar,
+      cgrdh(nlp.lib, st, nvar, ncon, x0, y0, True, gx, False, ncon, nvar, Jx, nvar,
             Wx)
       @test isapprox(gx, g(x0)+J(x0)'*y0, rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
-      cgrdh(st, nvar, ncon, x0, y0, True, gx, True, nvar, ncon, Jtx, nvar,
+      cgrdh(nlp.lib, st, nvar, ncon, x0, y0, True, gx, True, nvar, ncon, Jtx, nvar,
             Wx)
       @test isapprox(gx, g(x0)+J(x0)'*y0, rtol=rtol)
       @test isapprox(Jtx, J(x0)', rtol=rtol)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
 
-      cdh(st, nvar, ncon, x0, y0, nvar, Wx)
+      cdh(nlp.lib, st, nvar, ncon, x0, y0, nvar, Wx)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
 
-      csh(st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
+      csh(nlp.lib, st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
       Wx = zeros(nvar[1], nvar[1])
       for k = 1:nnzh[1]
         i = Hrow[k]; j = Hcol[k];
@@ -191,7 +191,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       end
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
 
-      cshc(st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
+      cshc(nlp.lib, st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
       Cx = zeros(nvar[1], nvar[1])
       for k = 1:nnzh[1]
         i = Hrow[k]; j = Hcol[k];
@@ -200,17 +200,17 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       end
       @test isapprox(Cx, (W(x0,y0)-H(x0)), rtol=rtol)
 
-      cidh(st, nvar, x0, Cint[0], nvar, Hx)
+      cidh(nlp.lib, st, nvar, x0, Cint[0], nvar, Hx)
       @test isapprox(Hx, H(x0), rtol=rtol)
       y1 = zeros(ncon[1])
       for k = 1:ncon[1]
-        cidh(st, nvar, x0, Cint[k], nvar, Cx)
+        cidh(nlp.lib, st, nvar, x0, Cint[k], nvar, Cx)
         y1[k] = 1.0
         @test isapprox(Cx, (W(x0,y1)-H(x0)), rtol=rtol)
         y1[k] = 0.0
       end
 
-      cish(st, nvar, x0, Cint[0], nnzh, lh, Hval, Hrow, Hcol)
+      cish(nlp.lib, st, nvar, x0, Cint[0], nnzh, lh, Hval, Hrow, Hcol)
       Hx = zeros(nvar[1], nvar[1])
       for k = 1:nnzh[1]
         i = Hrow[k]; j = Hcol[k];
@@ -220,7 +220,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       @test isapprox(Hx, H(x0), rtol=rtol)
       y1 = zeros(ncon[1])
       for k = 1:ncon[1]
-        cish(st, nvar, x0, Cint[k], nnzh, lh, Hval, Hrow, Hcol)
+        cish(nlp.lib, st, nvar, x0, Cint[k], nnzh, lh, Hval, Hrow, Hcol)
         Cx = zeros(nvar[1], nvar[1])
         for k2 = 1:nnzh[1]
           i = Hrow[k2]; j = Hcol[k2];
@@ -232,7 +232,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
         y1[k] = 0.0
       end
 
-      csgrsh(st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun, nnzh,
+      csgrsh(nlp.lib, st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun, nnzh,
              lh, Hval, Hrow, Hcol)
       gx = zeros(nvar[1])
       Jx = zeros(ncon[1], nvar[1])
@@ -252,7 +252,7 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Jx, J(x0), rtol=rtol)
       @test isapprox(Wx, W(x0,y0), rtol=rtol)
-      csgrsh(st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun, nnzh,
+      csgrsh(nlp.lib, st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun, nnzh,
              lh, Hval, Hrow, Hcol)
       glx = zeros(nvar[1])
       Jx = zeros(ncon[1], nvar[1])
@@ -275,32 +275,32 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
 
       v = ones(nvar[1])
       Hv = Array{Cdouble}(nvar[1])
-      chprod(st, nvar, ncon, False, x0, y0, v, Hv)
+      chprod(nlp.lib, st, nvar, ncon, False, x0, y0, v, Hv)
       @test isapprox(Hv, W(x0,y0)*v, rtol=rtol)
 
       Hv = Array{Cdouble}(nvar[1])
-      chcprod(st, nvar, ncon, False, x0, y0, v, Hv)
+      chcprod(nlp.lib, st, nvar, ncon, False, x0, y0, v, Hv)
       @test isapprox(Hv, (W(x0,y0)-H(x0))*v, rtol=rtol)
 
       v = ones(nvar[1])
       Jv = Array{Cdouble}(ncon[1])
-      cjprod(st, nvar, ncon, False, False, x0, v, nvar, Jv, ncon)
+      cjprod(nlp.lib, st, nvar, ncon, False, False, x0, v, nvar, Jv, ncon)
       @test isapprox(Jv, J(x0)*v, rtol=rtol)
       v = ones(ncon[1])
       Jtv = Array{Cdouble}(nvar[1])
-      cjprod(st, nvar, ncon, False, True, x0, v, ncon, Jtv, nvar)
+      cjprod(nlp.lib, st, nvar, ncon, False, True, x0, v, ncon, Jtv, nvar)
       @test isapprox(Jtv, J(x0)'*v, rtol=rtol)
     else
-      ufn(st, nvar, x0, fx)
+      ufn(nlp.lib, st, nvar, x0, fx)
       @test isapprox(fx[1], f(x0), rtol=rtol)
 
-      ugr(st, nvar, x0, gx)
+      ugr(nlp.lib, st, nvar, x0, gx)
       @test isapprox(gx, g(x0), rtol=rtol)
 
-      udh(st, nvar, x0, nvar, Hx)
+      udh(nlp.lib, st, nvar, x0, nvar, Hx)
       @test isapprox(Hx, H(x0), rtol=rtol)
 
-      ush(st, nvar, x0, nnzh, lh, Hval, Hrow, Hcol)
+      ush(nlp.lib, st, nvar, x0, nnzh, lh, Hval, Hrow, Hcol)
       Hx = zeros(nvar[1], nvar[1])
       for k = 1:nnzh[1]
         i = Hrow[k]; j = Hcol[k];
@@ -309,11 +309,11 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
       end
       @test isapprox(Hx, H(x0), rtol=rtol)
 
-      ugrdh(st, nvar, x0, gx, nvar, Hx)
+      ugrdh(nlp.lib, st, nvar, x0, gx, nvar, Hx)
       @test isapprox(gx, g(x0), rtol=rtol)
       @test isapprox(Hx, H(x0), rtol=rtol)
 
-      ugrsh(st, nvar, x0, gx, nnzh, lh, Hval, Hrow, Hcol)
+      ugrsh(nlp.lib, st, nvar, x0, gx, nnzh, lh, Hval, Hrow, Hcol)
       @test isapprox(gx, g(x0), rtol=rtol)
       Hx = zeros(nvar[1], nvar[1])
       for k = 1:nnzh[1]
@@ -325,10 +325,10 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
 
       v = ones(nvar[1])
       Hv = Array{Cdouble}(nvar[1])
-      uhprod(st, nvar, False, x0, v, Hv)
+      uhprod(nlp.lib, st, nvar, False, x0, v, Hv)
       @test isapprox(Hv, H(x0)*v, rtol=rtol)
 
-      uofg(st, nvar, x0, fx, gx, True)
+      uofg(nlp.lib, st, nvar, x0, fx, gx, True)
       @test isapprox(fx[1], f(x0), rtol=rtol)
       @test isapprox(gx, g(x0), rtol=rtol)
     end
@@ -336,61 +336,61 @@ function test_coreinterface(nlp::CUTEstModel, comp_nlp::AbstractNLPModel)
     print("Core interface stress test... ")
     for i = 1:10000
       if (ncon[1] > 0)
-        cfn(st, nvar, ncon, x0, fx, cx)
-        cofg(st, nvar, x0, fx, gx, True)
-        cofsg(st, nvar, x0, fx, nnzg, nvar, gval, gvar, True)
-        ccfg(st, nvar, ncon, x0, cx, True, nvar, ncon, Jtx, True)
-        ccfg(st, nvar, ncon, x0, cx, False, ncon, nvar, Jx, True)
-        clfg(st, nvar, ncon, x0, y0, lx, glx, True)
-        cgr(st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx)
-        cgr(st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx)
-        cgr(st, nvar, ncon, x0, y0, True, glx, True, nvar, ncon, Jtx)
-        cgr(st, nvar, ncon, x0, y0, True, glx, False, ncon, nvar, Jx)
-        csgr(st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun)
-        csgr(st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun)
-        ccfsg(st, nvar, ncon, x0, cx, nnzj, lj, Jval, Jvar, Jfun, True)
+        cfn(nlp.lib, st, nvar, ncon, x0, fx, cx)
+        cofg(nlp.lib, st, nvar, x0, fx, gx, True)
+        cofsg(nlp.lib, st, nvar, x0, fx, nnzg, nvar, gval, gvar, True)
+        ccfg(nlp.lib, st, nvar, ncon, x0, cx, True, nvar, ncon, Jtx, True)
+        ccfg(nlp.lib, st, nvar, ncon, x0, cx, False, ncon, nvar, Jx, True)
+        clfg(nlp.lib, st, nvar, ncon, x0, y0, lx, glx, True)
+        cgr(nlp.lib, st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx)
+        cgr(nlp.lib, st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx)
+        cgr(nlp.lib, st, nvar, ncon, x0, y0, True, glx, True, nvar, ncon, Jtx)
+        cgr(nlp.lib, st, nvar, ncon, x0, y0, True, glx, False, ncon, nvar, Jx)
+        csgr(nlp.lib, st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun)
+        csgr(nlp.lib, st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun)
+        ccfsg(nlp.lib, st, nvar, ncon, x0, cx, nnzj, lj, Jval, Jvar, Jfun, True)
         for j = 1:ncon[1]
-          ccifg(st, nvar, Cint[j], x0, ci, gci, True)
+          ccifg(nlp.lib, st, nvar, Cint[j], x0, ci, gci, True)
         end
         for j = 1:ncon[1]
-          ccifsg(st, nvar, Cint[j], x0, ci, nnzj, lj, Jval, Jvar, True)
+          ccifsg(nlp.lib, st, nvar, Cint[j], x0, ci, nnzj, lj, Jval, Jvar, True)
         end
-        cgrdh(st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx, nvar,
+        cgrdh(nlp.lib, st, nvar, ncon, x0, y0, False, gx, False, ncon, nvar, Jx, nvar,
               Wx)
-        cgrdh(st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx, nvar,
+        cgrdh(nlp.lib, st, nvar, ncon, x0, y0, False, gx, True, nvar, ncon, Jtx, nvar,
               Wx)
-        cgrdh(st, nvar, ncon, x0, y0, True, gx, False, ncon, nvar, Jx, nvar,
+        cgrdh(nlp.lib, st, nvar, ncon, x0, y0, True, gx, False, ncon, nvar, Jx, nvar,
               Wx)
-        cgrdh(st, nvar, ncon, x0, y0, True, gx, True, nvar, ncon, Jtx, nvar,
+        cgrdh(nlp.lib, st, nvar, ncon, x0, y0, True, gx, True, nvar, ncon, Jtx, nvar,
               Wx)
-        cdh(st, nvar, ncon, x0, y0, nvar, Wx)
-        csh(st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
-        cshc(st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
-        cidh(st, nvar, x0, Cint[0], nvar, Hx)
+        cdh(nlp.lib, st, nvar, ncon, x0, y0, nvar, Wx)
+        csh(nlp.lib, st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
+        cshc(nlp.lib, st, nvar, ncon, x0, y0, nnzh, lh, Hval, Hrow, Hcol)
+        cidh(nlp.lib, st, nvar, x0, Cint[0], nvar, Hx)
         for k = 1:ncon[1]
-          cidh(st, nvar, x0, Cint[k], nvar, Cx)
+          cidh(nlp.lib, st, nvar, x0, Cint[k], nvar, Cx)
         end
-        cish(st, nvar, x0, Cint[0], nnzh, lh, Hval, Hrow, Hcol)
+        cish(nlp.lib, st, nvar, x0, Cint[0], nnzh, lh, Hval, Hrow, Hcol)
         for k = 1:ncon[1]
-          cish(st, nvar, x0, Cint[k], nnzh, lh, Hval, Hrow, Hcol)
+          cish(nlp.lib, st, nvar, x0, Cint[k], nnzh, lh, Hval, Hrow, Hcol)
         end
-        csgrsh(st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun, nnzh,
+        csgrsh(nlp.lib, st, nvar, ncon, x0, y0, False, nnzj, lj, Jval, Jvar, Jfun, nnzh,
                lh, Hval, Hrow, Hcol)
-        csgrsh(st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun, nnzh,
+        csgrsh(nlp.lib, st, nvar, ncon, x0, y0, True, nnzj, lj, Jval, Jvar, Jfun, nnzh,
                lh, Hval, Hrow, Hcol)
-        chprod(st, nvar, ncon, False, x0, y0, v, Hv)
-        chcprod(st, nvar, ncon, False, x0, y0, v, Hv)
-        cjprod(st, nvar, ncon, False, False, x0, v, nvar, Jv, ncon)
-        cjprod(st, nvar, ncon, False, True, x0, v, ncon, Jtv, nvar)
+        chprod(nlp.lib, st, nvar, ncon, False, x0, y0, v, Hv)
+        chcprod(nlp.lib, st, nvar, ncon, False, x0, y0, v, Hv)
+        cjprod(nlp.lib, st, nvar, ncon, False, False, x0, v, nvar, Jv, ncon)
+        cjprod(nlp.lib, st, nvar, ncon, False, True, x0, v, ncon, Jtv, nvar)
       else
-        ufn(st, nvar, x0, fx)
-        ugr(st, nvar, x0, gx)
-        udh(st, nvar, x0, nvar, Hx)
-        ush(st, nvar, x0, nnzh, lh, Hval, Hrow, Hcol)
-        ugrdh(st, nvar, x0, gx, nvar, Hx)
-        ugrsh(st, nvar, x0, gx, nnzh, lh, Hval, Hrow, Hcol)
-        uhprod(st, nvar, False, x0, v, Hv)
-        uofg(st, nvar, x0, fx, gx, True)
+        ufn(nlp.lib, st, nvar, x0, fx)
+        ugr(nlp.lib, st, nvar, x0, gx)
+        udh(nlp.lib, st, nvar, x0, nvar, Hx)
+        ush(nlp.lib, st, nvar, x0, nnzh, lh, Hval, Hrow, Hcol)
+        ugrdh(nlp.lib, st, nvar, x0, gx, nvar, Hx)
+        ugrsh(nlp.lib, st, nvar, x0, gx, nnzh, lh, Hval, Hrow, Hcol)
+        uhprod(nlp.lib, st, nvar, False, x0, v, Hv)
+        uofg(nlp.lib, st, nvar, x0, fx, gx, True)
       end
     end
     println("passed")

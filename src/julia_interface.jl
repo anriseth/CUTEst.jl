@@ -18,12 +18,12 @@ function objcons!(nlp :: CUTEstModel, x :: Array{Float64,1}, c :: Array{Float64,
   io_err = Cint[0];
   f = Cdouble[0];
   if ncon > 0
-    ccall(dlsym(cutest_lib, :cutest_cfn_), Void,
+    ccall(dlsym(nlp.lib, :cutest_cfn_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
                  io_err,  &nvar,   &ncon,   x,         f,         c);
     nlp.counters.neval_cons += 1
   else
-    ccall(dlsym(cutest_lib, :cutest_ufn_), Void,
+    ccall(dlsym(nlp.lib, :cutest_ufn_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}),
                  io_err,  &nvar,    x,         f);
   end
@@ -47,11 +47,11 @@ function objgrad!(nlp :: CUTEstModel, x :: Array{Float64,1}, g :: Array{Float64,
   io_err = Cint[0];
   get_grad = 1;
   if ncon > 0
-    ccall(dlsym(cutest_lib, "cutest_cofg_"), Void,
+    ccall(dlsym(nlp.lib, "cutest_cofg_"), Void,
         (Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}),
              io_err,      &nvar,            x,            f,            g,  &get_grad);
   else
-    ccall(dlsym(cutest_lib, "cutest_uofg_"), Void,
+    ccall(dlsym(nlp.lib, "cutest_uofg_"), Void,
         (Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}),
              io_err,      &nvar,            x,            f,            g,  &get_grad);
   end
@@ -112,7 +112,7 @@ function cons_coord(nlp :: CUTEstModel, x :: Array{Float64,1})
   jrow = Array{Int32}(jsize);
   jcol = Array{Int32}(jsize);
 
-  ccall(dlsym(cutest_lib, :cutest_ccfsg_), Void,
+  ccall(dlsym(nlp.lib, :cutest_ccfsg_), Void,
               (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
                io_err,  &nvar,   &ncon,   x,         c,         &nnzj,   &jsize,  jval,      jcol,    jrow,    &get_j);
   @cutest_error
@@ -180,7 +180,7 @@ function jprod!(nlp :: CUTEstModel, x :: Array{Float64,1}, v :: Array{Float64,1}
   got_j = 0
   jtrans = 0
   io_err = Cint[0];
-  ccall(dlsym(cutest_lib, :cutest_cjprod_), Void,
+  ccall(dlsym(nlp.lib, :cutest_cjprod_), Void,
               (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}),
                io_err,     &nvar,      &ncon,      &got_j,     &jtrans,    x,            v,            &nvar,      jv,           &ncon);
   @cutest_error
@@ -201,7 +201,7 @@ function jtprod!(nlp :: CUTEstModel, x :: Array{Float64,1}, v :: Array{Float64,1
   got_j = 0
   jtrans = 1
   io_err = Cint[0];
-  ccall(dlsym(cutest_lib, :cutest_cjprod_), Void,
+  ccall(dlsym(nlp.lib, :cutest_cjprod_), Void,
               (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}),
                io_err,     &nvar,      &ncon,      &got_j,     &jtrans,    x,            v,            &ncon,      jtv,          &nvar);
   @cutest_error
@@ -221,7 +221,7 @@ function hess_coord(nlp :: CUTEstModel, x :: Array{Float64,1}; y :: Array{Float6
   this_nnzh = Cint[0];
 
   if obj_weight == 0.0 && ncon > 0
-    ccall(dlsym(cutest_lib, :cutest_cshc_), Void,
+    ccall(dlsym(nlp.lib, :cutest_cshc_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}),
                  io_err,     &nvar,      &ncon,      x,            y,            this_nnzh,  &nnzh,      hval,         hrow,       hcol);
     @cutest_error
@@ -233,11 +233,11 @@ function hess_coord(nlp :: CUTEstModel, x :: Array{Float64,1}; y :: Array{Float6
     # σ H₀ + ∑ᵢ yᵢ Hᵢ = σ (H₀ + ∑ᵢ (yᵢ/σ) Hᵢ)
     obj_weight != 1.0 && (y /= obj_weight)
 
-    ccall(dlsym(cutest_lib, :cutest_csh_), Void,
+    ccall(dlsym(nlp.lib, :cutest_csh_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32},   Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}),
                  io_err,  &nvar,   &ncon,   x,         y,         this_nnzh, &nnzh,   hval,      hrow,    hcol);
   else
-    ccall(dlsym(cutest_lib, :cutest_ush_), Void,
+    ccall(dlsym(nlp.lib, :cutest_ush_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32},   Ptr{Float64}, Ptr{Int32}, Ptr{Int32}),
                  io_err,  &nvar,   x,         this_nnzh,   &nnzh, hval,      hrow,    hcol);
   end
@@ -268,7 +268,7 @@ function hprod!(nlp :: CUTEstModel, x :: Array{Float64,1}, v :: Array{Float64,1}
   goth = Cint[0];
 
   if obj_weight == 0.0 && ncon > 0
-    ccall(dlsym(cutest_lib, :cutest_chcprod_), Void,
+    ccall(dlsym(nlp.lib, :cutest_chcprod_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
                  io_err,     &nvar,      &ncon,      goth,       x,            y,            v,            hv);
     @cutest_error
@@ -280,11 +280,11 @@ function hprod!(nlp :: CUTEstModel, x :: Array{Float64,1}, v :: Array{Float64,1}
     # σ H₀ + ∑ᵢ yᵢ Hᵢ = σ (H₀ + ∑ᵢ (yᵢ/σ) Hᵢ)
     obj_weight != 1.0 && (y /= obj_weight)
 
-    ccall(dlsym(cutest_lib, :cutest_chprod_), Void,
+    ccall(dlsym(nlp.lib, :cutest_chprod_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
                  io_err,  &nvar,   &ncon,   goth,    x,         y,         v,         hv);
   else
-    ccall(dlsym(cutest_lib, :cutest_uhprod_), Void,
+    ccall(dlsym(nlp.lib, :cutest_uhprod_), Void,
                 (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
                  io_err,  &nvar,   goth,    x,         v,         hv);
   end
