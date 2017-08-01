@@ -14,6 +14,10 @@ matrix:
       julia: 0.6
       osx_image: xcode7.3
 
+addons:
+  apt_packages:
+    - gfortran
+
 branches:
   only:
     - master
@@ -22,7 +26,7 @@ sudo: required
 
 before_install:
   - if [ `uname` == "Linux" ]; then
-    julia -E 'Pkg.clone("https://github.com/dpo/Linuxbrew.jl.git"); Pkg.build("Linuxbrew"); using Linuxbrew; Linuxbrew.add("patchelf"); Linuxbrew.add("gcc")';
+    julia -E 'Pkg.clone("https://github.com/dpo/Linuxbrew.jl.git"); Pkg.build("Linuxbrew"); using Linuxbrew; Linuxbrew.add("patchelf")';
     fi
   - if [ `uname` == "Darwin" ]; then brew install gcc; fi
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
