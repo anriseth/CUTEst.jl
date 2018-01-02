@@ -87,16 +87,19 @@ function sifdecoder(name :: String, args...; verbose :: Bool=false)
   outlog = tempname()
   errlog = tempname()
   cd(ENV["cutest-problems"]) do
-    run(pipeline(ignorestatus(`$sifdecoderbin $args $name`), stdout=outlog, stderr=errlog))
-    print(readstring(errlog))
-    verbose && println(readstring(outlog))
 
-    run(`gfortran -c -fPIC ELFUN.f EXTER.f GROUP.f RANGE.f`);
-    run(`$linker $sh_flags -o $libname.$(Libdl.dlext) ELFUN.o EXTER.o GROUP.o RANGE.o $libpath $libgfortran`);
-    run(`rm ELFUN.f EXTER.f GROUP.f RANGE.f ELFUN.o EXTER.o GROUP.o RANGE.o`);
-    cutest_lib = Libdl.dlopen(libname,
-      Libdl.RTLD_NOW | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
+    if !isfile("$(libname).$(Libdl.dlext)")
+      run(pipeline(ignorestatus(`$sifdecoderbin $args $name`), stdout=outlog, stderr=errlog))
+      print(readstring(errlog))
+      verbose && println(readstring(outlog))
+
+      run(`gfortran -c -fPIC ELFUN.f EXTER.f GROUP.f RANGE.f`);
+      run(`$linker $sh_flags -o $libname.$(Libdl.dlext) ELFUN.o EXTER.o GROUP.o RANGE.o $libpath $libgfortran`);
+      run(`rm ELFUN.f EXTER.f GROUP.f RANGE.f ELFUN.o EXTER.o GROUP.o RANGE.o`);
+    end
   end
+  cutest_lib = Libdl.dlopen(libname,
+                            Libdl.RTLD_NOW | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
 end
 
 # Initialize problem.
